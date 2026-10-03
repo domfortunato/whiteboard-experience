@@ -207,6 +207,11 @@ MIT
 
 ## Changelog
 
+### v0.9.1.2 (this fork)
+
+**Fixed**
+- Locking the board while a player was editing an object left that object locked against the GM for up to 20 seconds. The player's own lock release now gets through the lock; lock requests and renewals from locked-out players are still dropped.
+
 ### v0.9.1.1 (this fork)
 
 **New**

@@ -18797,15 +18797,21 @@ class SocketController {
     } = payload;
 
     // gm-lock (this fork): while "Players Can Edit the Whiteboard" is off, a non-GM client's
-    // object mutations AND lock traffic are ignored by every client - in particular by the
-    // activeGM, the only client that writes scene flags. The sender is judged by the id the
-    // server attached to the message (senderId), which a client cannot forge, so on a core
-    // that passes it (v14 does) this holds even against a player crafting raw socket
-    // messages from the console; the payload's self-reported userId is only the fallback.
-    // gmStatusChange is informational and is let through. Must run before the LockManager
-    // and the scene filter below.
+    // object mutations and lock requests/renewals are ignored by every client - in
+    // particular by the activeGM, the only client that writes scene flags. The sender is
+    // judged by the id the server attached to the message (senderId), which a client cannot
+    // forge, so on a core that passes it (v14 does) this holds even against a player crafting
+    // raw socket messages from the console; the payload's self-reported userId is only the
+    // fallback. Let through: gmStatusChange (informational) and a lockRelease whose payload
+    // names the sender itself - a player who held an edit lock when the GM flipped the
+    // setting must still be able to give it back (applyBoardAccess ends the edit, and the
+    // resync's teardown releases again), or the arbiter keeps that object locked against
+    // the GM until the lock expires. The arbiter frees only the sender's own lock. Must run
+    // before the LockManager and the scene filter below.
     const from = senderId ?? userId;
-    if (action !== 'gmStatusChange' && !canUserEditBoard(from)) {
+    const passesWhileLocked = action === 'gmStatusChange' ||
+      (action === 'lockRelease' && userId === from);
+    if (!passesWhileLocked && !canUserEditBoard(from)) {
       console.log(`[Socket] Ignoring ${action} from ${from}: players cannot edit the board`);
       return;
     }
