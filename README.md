@@ -3,6 +3,22 @@
 <a href='https://ko-fi.com/R6R71Q8I8O' target='_blank'><img height='36' style='border:0px;height:24px;' src='https://storage.ko-fi.com/cdn/kofi6.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 # Whiteboard Experience, Foundry11+
 
+> **This is a fork** of [rokunin/whiteboard-experience](https://github.com/rokunin/whiteboard-experience)
+> with one addition: a world setting, **Players Can Edit the Whiteboard**, that lets the GM switch the
+> board off for players during play. Off, players still see the board, but the WBE toolbar is gone for
+> them, their WBE hotkeys do nothing, and their clicks go straight through to the Foundry canvas; only
+> GMs can add, move, edit or delete objects. It flips live for everyone, no reload. Find it under
+> Configure Settings → Whiteboard Experience, or in the toolbar's ⚙ popup (GM only). Everything else
+> is upstream, unchanged.
+>
+> ![The WBE settings popup with the new Players switch](settings_players_toggle.png)
+>
+> Toggle it from a macro:
+> ```js
+> const id = 'whiteboard-experience';
+> game.settings.set(id, 'playersCanEdit', !game.settings.get(id, 'playersCanEdit'));
+> ```
+
 FoundryVTT module that provides whiteboard-style tools for images, text, shapes, and freehand drawing.
 
 **Important:** WBE objects live in a layer ABOVE the standard Foundry canvas. They will overlay tokens, tiles, drawings, and other native VTT objects.
@@ -150,6 +166,7 @@ Click thumbnails to view full size:
 - Bend a connector by dragging its middle point
 
 ### GM Tools
+- Players Can Edit the Whiteboard (this fork): world setting, on by default. Off, players see the board but cannot touch it — no toolbar, no hotkeys, clicks fall through to the canvas — and the GM client ignores the object changes a player's client sends. Toggle it in Configure Settings, the toolbar ⚙ popup, or a macro (see the top of this README)
 - Hide From Players: hidden objects are invisible to players and click-through for them
 - "Create objects as hidden" option in the toolbar settings (⚙)
 
@@ -166,12 +183,21 @@ Click thumbnails to view full size:
 ## Installation
 
 1. In Foundry, go to Add-on Modules → Install Module
-2. Paste manifest URL: `https://raw.githubusercontent.com/rokunin/whiteboard-experience/main/module.json`
+2. Paste manifest URL: `https://github.com/domfortunato/whiteboard-experience/releases/latest/download/module.json` (this fork; upstream's is `https://raw.githubusercontent.com/rokunin/whiteboard-experience/main/module.json`)
 3. Enable the module in your world
+
+**Keeping the fork:** it uses upstream's package id, so whenever upstream's listed version is higher than the fork's, Foundry's updater offers to switch you to a "new installation URL" (upstream's) and defaults to Yes. Answer **No** to keep the lock setting. The fork is re-released as `<upstream version>.1` after each upstream release, so the offer goes away again once that is out.
 
 ## TODO
 - [ ] Vector Line Shape Tool
 - [ ] Place DOM layer under Foundry Canvas option
+
+## Maintaining this fork
+
+- Versions are `<upstream version>.<n>` (`0.9.1.1` is upstream 0.9.1 plus the first fork release). Stay ahead of upstream's listed version, or Foundry starts offering installs the switch back to upstream (see Installation).
+- A release is a push to `main` that changes `version` in `module.json`: the workflow in `.github/workflows/releases.yml` tags `v<version>` and attaches `module.json` and `module.zip` to a GitHub release. The manifest URL above always resolves to the latest release, never to an unreleased `main`.
+- GitHub keeps Actions disabled on a fork until they are enabled once in the Actions tab. Do that before the first push, or run the workflow by hand afterwards (Actions → Release Module → Run workflow).
+- To take a new upstream version: `git fetch upstream`, rebase `main` onto `upstream/main`, bump `version` to `<new upstream>.1`. Every fork line in `scripts/main.mjs` is commented `gm-lock`, so `grep gm-lock` lists the whole diff.
 
 ## License
 
@@ -180,6 +206,11 @@ MIT
 ---
 
 ## Changelog
+
+### v0.9.1.1 (this fork)
+
+**New**
+- "Players Can Edit the Whiteboard" world setting, on by default. Off: players still see the board, but the WBE toolbar is hidden for them, their WBE hotkeys do nothing, their clicks pass through to the Foundry canvas, and every other client — the GM's included, which is the one that saves the board — ignores the object changes a player's client sends. GMs and Assistant GMs are never affected. Takes effect on every connected client at once, no reload. Also in the toolbar's ⚙ popup for GMs. On Foundry 14 the check uses the sender identity the server attaches to every socket message, which a player cannot forge from the console; on an older core that does not pass it, the check falls back to the message's own user id.
 
 ### v0.9.1
 
